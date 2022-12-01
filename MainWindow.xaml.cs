@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Windows;
 
 namespace TaskRecruitment
@@ -10,8 +9,8 @@ namespace TaskRecruitment
     public partial class MainWindow : Window
     {
         #region Fields
-        string login;
-        string password;
+        string? login;
+        string? password;
         string connectionString;
 
         #endregion Fields
@@ -34,7 +33,7 @@ namespace TaskRecruitment
             }
         }
 
-      
+
         private void btnTestConnect_Click(object sender, RoutedEventArgs e)
         {
             TextBoxSelection(sender, e);
@@ -57,15 +56,20 @@ namespace TaskRecruitment
                             WHERE TABLE_CATALOG = 'DevData'
                             AND DATA_TYPE = 'int'");
 
-            var con = new SqlConnection(connectionString);
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(strSQL, con))
+                {
 
-            var cmd = new SqlCommand(strSQL, con);
-
-            var sqlDataAdapter = new SqlDataAdapter(cmd);
-            var dt = new DataTable();
-            sqlDataAdapter.Fill(dt);
-            DataView dataView = dt.DefaultView;
-            dataGrid.ItemsSource = dataView;
+                    using (SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(cmd))
+                    {
+                        var dt = new DataTable();
+                        sqlDataAdapter.Fill(dt);
+                        DataView dataView = dt.DefaultView;
+                        dataGrid.ItemsSource = dataView;
+                    }
+                }
+            }
         }
         #endregion ButtonMethods
 
@@ -82,7 +86,7 @@ namespace TaskRecruitment
             txtPassword_PasswordChanged(sender, e);
             connectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=DevData;User ID=" + login + ";Password=" + password;
         }
-        
+
 
         private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e)
         {
